@@ -34,7 +34,7 @@ class BaseModelColor:
         m_model = glm.scale(m_model, self.scale)
         return m_model
 
-    def update(self):
+    def update(self, delta_time=0.0):
         self.program['m_view'].write(self.camera.m_view)
         self.program['m_model'].write(self.m_model)
         self.program['cam_pos'].write(self.camera.position)
@@ -52,4 +52,9 @@ class ColorCube(BaseModelColor):
 
 class ColorPlane(BaseModelColor):
     def __init__(self, app, vao_name='color_plane', pos=(0, 0, 0), rot=(0, 0, 0), scale=(1, 1, 1), color=(1.0, 1.0, 1.0)):
+        super().__init__(app, vao_name, pos, rot, scale, color)
+
+
+class ColorCapsule(BaseModelColor):
+    def __init__(self, app, vao_name='color_capsule', pos=(0, 0, 0), rot=(0, 0, 0), scale=(1, 1, 1), color=(1.0, 1.0, 1.0)):
         super().__init__(app, vao_name, pos, rot, scale, color)

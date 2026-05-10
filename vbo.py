@@ -6,6 +6,7 @@ class VBO:
         self.vbos = {
             'color_cube': ColorCubeVBO(ctx),
             'color_plane': ColorPlaneVBO(ctx),
+            'color_capsule': ColorCapsuleVBO(ctx),
         }
 
     def destroy(self):
@@ -77,3 +78,83 @@ class ColorCubeVBO(BaseVBO):
                     data.extend(normal)
                     data.extend(vertices[idx])
         return np.array(data, dtype='f4').reshape(-1, 6)
+
+
+class ColorCapsuleVBO(BaseVBO):
+    format = '3f 3f'
+    attribs = ['in_normal', 'in_position']
+
+    def get_vertex_data(self):
+        """Generate capsule mesh data"""
+        segments = 16
+        rings = 8
+        
+        vertices = []
+        normals = []
+        indices = []
+        vertex_index = 0
+        
+        # Top hemisphere
+        for i in range(rings + 1):
+            ring_angle = (i / rings) * (np.pi / 2)
+            ring_radius = np.sin(ring_angle)
+            ring_height = np.cos(ring_angle)
+            
+            for j in range(segments):
+                angle = (j / segments) * 2 * np.pi
+                x = ring_radius * np.cos(angle)
+                z = ring_radius * np.sin(angle)
+                y = ring_height + 1.0
+                
+                vertices.append((x, y, z))
+                normals.append((x, ring_height, z))
+                
+                if i < rings:
+                    if j < segments - 1:
+                        idx0 = vertex_index
+                        idx1 = vertex_index + 1
+                        idx2 = vertex_index + segments
+                        idx3 = vertex_index + segments + 1
+                        
+                        indices.append((idx0, idx2, idx1))
+                        indices.append((idx1, idx2, idx3))
+                    
+                    vertex_index += 1
+            
+            vertex_index = len(vertices)
+        
+        # Bottom hemisphere
+        top_vert_count = len(vertices)
+        for i in range(rings + 1):
+            ring_angle = (i / rings) * (np.pi / 2)
+            ring_radius = np.sin(ring_angle)
+            ring_height = -np.cos(ring_angle)
+            
+            for j in range(segments):
+                angle = (j / segments) * 2 * np.pi
+                x = ring_radius * np.cos(angle)
+                z = ring_radius * np.sin(angle)
+                y = ring_height - 1.0
+                
+                vertices.append((x, y, z))
+                normals.append((x, -ring_height, z))
+        
+        # Middle cylinder
+        for j in range(segments):
+            idx0 = (rings) * segments + j
+            idx1 = (rings) * segments + ((j + 1) % segments)
+            idx2 = top_vert_count + j
+            idx3 = top_vert_count + ((j + 1) % segments)
+            
+            indices.append((idx0, idx2, idx1))
+            indices.append((idx1, idx2, idx3))
+        
+        data = []
+        for tri in indices:
+            for idx in tri:
+                if idx < len(normals):
+                    data.extend(normals[idx])
+                if idx < len(vertices):
+                    data.extend(vertices[idx])
+        
+        return np.array(data, dtype='f4').reshape(-1, 6) if data else np.array([], dtype='f4').reshape(0, 6)

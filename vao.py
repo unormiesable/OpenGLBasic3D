@@ -10,6 +10,7 @@ class VAO:
         self.vaos = {
             'color_cube': self.get_vao(self.program.programs['default_color'], self.vbo.vbos['color_cube']),
             'color_plane': self.get_vao(self.program.programs['default_color'], self.vbo.vbos['color_plane']),
+            'color_capsule': self.get_vao(self.program.programs['default_color'], self.vbo.vbos['color_capsule']),
         }
 
     def get_vao(self, program, vbo):
